@@ -1,0 +1,29 @@
+#!/usr/local/bin/python
+
+import sys, os, re
+from subprocess import check_output
+
+commit_msg_filepath = sys.argv[1]
+branch = check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
+
+if branch.startswith(bytes('feature/'.encode('utf-8'))) or branch.startswith(bytes('bugfix/'.encode('utf-8'))):
+    regex = "[a-z]+/([a-zA-Z]+)-([0-9]+)(.*)"
+    result = re.match(regex, branch.decode('utf-8'))
+    project = result.group(1)
+    ticket_id = result.group(2)
+    prefix = f'{project}-{ticket_id}'
+    
+    with open(commit_msg_filepath, 'r+') as f:
+        content = f.read().strip()
+        if content.endswith('.'):
+            content = content[:-1]
+        if len(content) > 50:
+            print('\x1b[2;37;41mcommit-msg: ERROR! The commit message length should not exceed 50 characters\033[0m')
+            sys.exit(1)
+        if prefix in content:
+            print('\x1b[2;37;41mcommit-msg: ERROR! You do not have to include ticket id to commit message\033[0m\n')
+            print(f'\x1b[2;37;41mcommit-msg: Remove {prefix} from your commit message and re-enter\033[0m\n')
+            sys.exit(1)
+        f.seek(0, 0)
+        final_commit_message = f'{prefix} - {content[0].upper()}{content[1:]}'
+        f.write(final_commit_message)
