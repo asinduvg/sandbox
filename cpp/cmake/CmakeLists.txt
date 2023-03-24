@@ -1,0 +1,11 @@
+# sample cmake list
+
+cmake_minimum_required(VERSION 3.10)
+
+project(ProjectName)
+
+set(CMAKE_CXX_STANDARD 11)
+
+file(GLOB_RECURSE cppSources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+
+add_executable(ProjectName ${cppSources})
